@@ -153,46 +153,42 @@ phones signed in to the same account.
 > job can take that long to appear. Apple Calendar and most other clients honour
 > the feed's `REFRESH-INTERVAL` (6 h) and let you refresh manually.
 
-## Deployment (Kubernetes + Flux)
+## Container image
 
-### Image
+[`.github/workflows/image.yaml`](.github/workflows/image.yaml) runs `go vet` and
+`go test -race`, then builds a multi-arch (`linux/amd64`, `linux/arm64`) image
+and pushes it to `ghcr.io/tiesmaster/knvb-matches-to-ical`:
 
-No CI yet. Build and push manually:
-
-```sh
-docker build -t ghcr.io/tiesmaster/knvb-matches-to-ical:latest .
-docker push ghcr.io/tiesmaster/knvb-matches-to-ical:latest
-```
+| Trigger | Tags |
+|---|---|
+| Push to `main` | `latest`, `sha-<short>` |
+| Tag `v1.2.3` | `1.2.3`, `1.2`, `sha-<short>` |
+| Pull request | Build only, nothing pushed |
 
 The image is a static `CGO_ENABLED=0` binary on
-`gcr.io/distroless/static:nonroot`. Either make the GHCR package public or add
-an `imagePullSecret`. Pin a tag or digest in `deploy/kustomization.yaml`.
+`gcr.io/distroless/static:nonroot` (uid 65532). After the first push, make the
+GHCR package public, or give the cluster an `imagePullSecret`.
 
-### Manifests
+## Running in Kubernetes
 
-`deploy/` is a plain Kustomize directory:
+Deployment manifests live in the homeops repo. What the job needs:
 
-- `namespace.yaml`: namespace `knvb-ical` (Pod Security `restricted`)
-- `cronjob.yaml`: `17 6,18 * * *` in `Europe/Amsterdam`, `concurrencyPolicy:
-  Forbid`, non-root, read-only root fs, resource limits
-- `secret.sops.yaml`: **template with placeholders**
+- **A CronJob**, e.g. `schedule: "17 6,18 * * *"` with
+  `timeZone: Europe/Amsterdam` and `concurrencyPolicy: Forbid`. The client
+  already retries, so `backoffLimit: 0` is fine. A run takes seconds;
+  `activeDeadlineSeconds: 600` is plenty.
+- **Env** from the configuration table: `SOURCE=live` plus the `KNVB_*`,
+  `R2_*` and (optionally) `NOTIFY_URL` values from a Secret. Treat
+  `R2_OBJECT_KEY` and `NOTIFY_URL` as secrets too, because their random
+  segments are the only access control.
+- **Hardening that works:** `runAsNonRoot`, `readOnlyRootFilesystem: true`, no
+  service-account token, all capabilities dropped. The process writes nothing
+  to disk outside `DRY_RUN`. 32Mi request / 128Mi limit is ample.
+- **Egress** to `app-vnl-production.sportlink.com`,
+  `<account>.r2.cloudflarestorage.com` and the ntfy host.
 
-Before committing real values:
-
-```sh
-# put your age public key in .sops.yaml, fill in the secret, then:
-sops --encrypt --in-place deploy/secret.sops.yaml
-```
-
-Point a Flux `Kustomization` at `./deploy` with `decryption: {provider: sops}`
-and the age key in the referenced secret.
-
-Trigger a run by hand:
-
-```sh
-kubectl -n knvb-ical create job --from=cronjob/knvb-ical knvb-ical-manual
-kubectl -n knvb-ical logs -f job/knvb-ical-manual
-```
+The exit code is non-zero whenever nothing new could be published (API,
+decode, state or upload errors, or the empty-feed guard). Alert on failed Jobs.
 
 ## Caveats
 

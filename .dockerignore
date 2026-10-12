@@ -2,6 +2,5 @@
 .env
 *.env
 out/
-deploy/
 docs/
 *.md
