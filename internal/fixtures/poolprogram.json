@@ -1,0 +1,100 @@
+{
+  "ProgramItemMatch": [
+    {
+      "DetailsKey": "M707488589",
+      "Timestamp": "2026-10-03T08:30:00+0200",
+      "EndTimestamp": null,
+      "Match": {
+        "PublicMatchId": "M707488589",
+        "ExternalMatchId": 36736,
+        "MatchDateTime": "2026-10-03T08:30:00+0200",
+        "Status": "SCHEDULED",
+        "DisciplineStatus": null,
+        "Location": null,
+        "Pool": {
+          "CompetitionKind": "DEFAULT_COMPETITION",
+          "ClassName": "4e klasse Zwaluwen Jeugd (1e fase)",
+          "PoolId": 839615,
+          "PoolName": "12",
+          "SortOrder": 456099999,
+          "NextMatchDate": null,
+          "PreviousMatchDate": null
+        },
+        "HomeTeam": {
+          "PublicTeamId": "T1049108481",
+          "TeamCode": "O8-5",
+          "TeamName": "VOC O8-5",
+          "SportId": "SOCCER-VE-AL",
+          "SportTag": "SATURDAY",
+          "Gender": "Male",
+          "SportDescription": "Veld Algemeen/Zaterdag",
+          "LocalTeam": false,
+          "LogoUrl": null,
+          "Club": {
+            "ClubId": "BBDZ847",
+            "ClubName": "VOC",
+            "City": "ROTTERDAM",
+            "ClubLogo": {
+              "Bucket": "KNVB-production-REPL",
+              "Hash": "8D4FF433F459C2CCF30CD64B1D845B9A"
+            },
+            "ClubColors": {
+              "HomeOutfit": {
+                "Shirt": "rood-zwart horz.gestreept",
+                "Shorts": "rood",
+                "Stocking": "rood-zwart"
+              },
+              "AwayOutfit": {
+                "Shirt": null,
+                "Shorts": null,
+                "Stocking": null
+              },
+              "ReserveOutfit": {
+                "Shirt": null,
+                "Shorts": null,
+                "Stocking": null
+              }
+            }
+          }
+        },
+        "AwayTeam": {
+          "PublicTeamId": "T1115247585",
+          "TeamCode": "O8-4",
+          "TeamName": "BVCB O8-4",
+          "SportId": "SOCCER-VE-AL",
+          "SportTag": "SATURDAY",
+          "Gender": "Male",
+          "SportDescription": "Veld Algemeen/Zaterdag",
+          "LocalTeam": false,
+          "LogoUrl": null,
+          "Club": {
+            "ClubId": "BBDY83Z",
+            "ClubName": "BVCB",
+            "City": "BERGSCHENHOEK",
+            "ClubLogo": {
+              "Bucket": "KNVB-production-REPL",
+              "Hash": "1F57C3E252E380917F3F4152C3FA0552"
+            },
+            "ClubColors": {
+              "HomeOutfit": {
+                "Shirt": "wit",
+                "Shorts": "blauw",
+                "Stocking": "blauw"
+              },
+              "AwayOutfit": {
+                "Shirt": "Blauw",
+                "Shorts": "Rood",
+                "Stocking": "Rood"
+              },
+              "ReserveOutfit": {
+                "Shirt": "Blauw",
+                "Shorts": "Blauw",
+                "Stocking": "Blauw"
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}
