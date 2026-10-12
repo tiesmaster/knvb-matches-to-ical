@@ -50,6 +50,10 @@ type Config struct {
 	RetainDays      int
 	NotifyURL       string
 
+	// DummyReschedule shifts one synthetic match (SOURCE=dummy only), to
+	// exercise change detection in the local loop.
+	DummyReschedule bool
+
 	DryRun     bool
 	OutDir     string
 	AllowEmpty bool
@@ -81,7 +85,7 @@ func (c Config) LogValue() slog.Value {
 		slog.String("out_dir", c.OutDir),
 		slog.Bool("allow_empty", c.AllowEmpty),
 		slog.Bool("notify", c.NotifyURL != ""),
-		slog.Duration("default_duration", c.DefaultDuration),
+		slog.String("default_duration", c.DefaultDuration.String()),
 		slog.Int("retain_days", c.RetainDays),
 	)
 }
@@ -117,16 +121,17 @@ func Load(getenv func(string) string) (Config, error) {
 	}
 
 	c := Config{
-		Source:      strings.ToLower(str("SOURCE", SourceDummy)),
-		TeamID:      str("TEAM_ID", DefaultTeamID),
-		OnlyOwnTeam: boolean("ONLY_OWN_TEAM"),
-		IncludePast: boolean("INCLUDE_PAST"),
-		CalName:     str("CAL_NAME", DefaultCalName),
-		NotifyURL:   get("NOTIFY_URL"),
-		DryRun:      boolean("DRY_RUN"),
-		OutDir:      str("OUT_DIR", DefaultOutDir),
-		AllowEmpty:  boolean("ALLOW_EMPTY"),
-		R2ObjectKey: strings.TrimPrefix(get("R2_OBJECT_KEY"), "/"),
+		Source:          strings.ToLower(str("SOURCE", SourceDummy)),
+		TeamID:          str("TEAM_ID", DefaultTeamID),
+		OnlyOwnTeam:     boolean("ONLY_OWN_TEAM"),
+		IncludePast:     boolean("INCLUDE_PAST"),
+		CalName:         str("CAL_NAME", DefaultCalName),
+		NotifyURL:       get("NOTIFY_URL"),
+		DryRun:          boolean("DRY_RUN"),
+		DummyReschedule: boolean("DUMMY_RESCHEDULE"),
+		OutDir:          str("OUT_DIR", DefaultOutDir),
+		AllowEmpty:      boolean("ALLOW_EMPTY"),
+		R2ObjectKey:     strings.TrimPrefix(get("R2_OBJECT_KEY"), "/"),
 	}
 
 	c.DefaultDuration = DefaultDuration
