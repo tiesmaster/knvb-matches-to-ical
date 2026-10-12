@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
+	"time"
 )
 
 // ProgramResponse is the shape shared by TeamProgram?v=3 and PoolProgram?v=2.
@@ -237,4 +238,18 @@ func walk(v any, visit func(map[string]any)) {
 			walk(c, visit)
 		}
 	}
+}
+
+// Fixture is one programme item, optionally enriched with its MatchFacility.
+type Fixture struct {
+	Item     ProgramItemMatch
+	Facility *MatchFacility
+}
+
+// Start is the kickoff: MatchDateTime, falling back to the programme Timestamp.
+func (f Fixture) Start() time.Time {
+	if !f.Item.Match.MatchDateTime.IsZero() {
+		return f.Item.Match.MatchDateTime.Time
+	}
+	return f.Item.Timestamp.Time
 }
