@@ -1,0 +1,17 @@
+{
+  "_comment": "SYNTHETIC — field names from the decompiled app (REQUIREMENTS §4.1), values invented. Replace with a real capture.",
+  "FacilityId": 12345,
+  "FacilityName": "Sportpark VOC",
+  "Address": "Kralingseweg 200",
+  "ZipCode": "3062 CG",
+  "City": "Rotterdam",
+  "PhoneNumber": null,
+  "SubFacilityName": "Veld 3",
+  "FieldType": "Kunstgras",
+  "AssemblyTime": "08:00",
+  "DepartureTime": null,
+  "HomeDressingRoom": "2",
+  "AwayDressingRoom": "5",
+  "OfficialDressingRoom": null,
+  "ClubInformationUrl": null
+}

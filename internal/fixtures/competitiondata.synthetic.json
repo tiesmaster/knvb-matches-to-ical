@@ -1,0 +1,11 @@
+{
+  "_comment": "SYNTHETIC — shape inferred from REQUIREMENTS §11.2 ('Pool[].PoolId'). Replace with a real capture.",
+  "Pool": [
+    {
+      "PoolId": 839615,
+      "PoolName": "12",
+      "ClassName": "4e klasse Zwaluwen Jeugd (1e fase)",
+      "CompetitionKind": "DEFAULT_COMPETITION"
+    }
+  ]
+}

@@ -8,3 +8,15 @@ import _ "embed"
 //
 //go:embed poolprogram.json
 var PoolProgram []byte
+
+// CompetitionData is a SYNTHETIC TeamCompetitionData?v=2 response; the real
+// shape has not been captured yet.
+//
+//go:embed competitiondata.synthetic.json
+var CompetitionData []byte
+
+// MatchFacility is a SYNTHETIC MatchFacility?v=3 response; the real shape has
+// not been captured yet.
+//
+//go:embed matchfacility.synthetic.json
+var MatchFacility []byte
