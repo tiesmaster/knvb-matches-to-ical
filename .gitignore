@@ -1,0 +1,18 @@
+# Build output
+/knvb-ical
+/bin/
+/dist/
+
+# Local dry-run output
+/out/
+
+# Local secrets — never commit
+.env
+*.env
+!.env.example
+
+# Editors / OS
+.idea/
+.vscode/
+*.swp
+.DS_Store
