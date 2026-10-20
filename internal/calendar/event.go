@@ -132,7 +132,7 @@ func description(m *sportlink.Match, f *sportlink.MatchFacility, kind StatusKind
 
 // clock renders a time-ish value as "15:04" in Europe/Amsterdam when it parses
 // as a Sportlink timestamp; otherwise (e.g. it is already "08:00") verbatim.
-func clock(t sportlink.Text) string {
+func clock(t string) string {
 	s := clean(t)
 	if s == "" {
 		return ""
@@ -143,7 +143,7 @@ func clock(t sportlink.Text) string {
 	return s
 }
 
-func clean(t sportlink.Text) string { return strings.TrimSpace(string(t)) }
+func clean(s string) string { return strings.TrimSpace(s) }
 
 func joinNonEmpty(sep string, parts ...string) string {
 	var out []string

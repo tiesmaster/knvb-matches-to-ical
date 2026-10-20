@@ -22,7 +22,7 @@ func TestClientHappyPath(t *testing.T) {
 	ctx := context.Background()
 
 	pools, err := c.TeamCompetitionData(ctx, "T1779014083")
-	if err != nil || len(pools) != 1 || pools[0] != 839615 {
+	if err != nil || len(pools) != 2 || pools[0] != 839615 || pools[1] != 845725 {
 		t.Fatalf("pools: %v %v", pools, err)
 	}
 	items, err := c.PoolProgram(ctx, 839615) // served gzip-compressed
@@ -30,7 +30,7 @@ func TestClientHappyPath(t *testing.T) {
 		t.Fatalf("pool program: %v %v", items, err)
 	}
 	fac, err := c.MatchFacility(ctx, "M707488589")
-	if err != nil || fac.FacilityName != "Sportpark VOC" {
+	if err != nil || fac.FacilityName != "Sportpark Neptunus-Schiebroek" {
 		t.Fatalf("facility: %+v %v", fac, err)
 	}
 	if srv.Logins() != 1 {

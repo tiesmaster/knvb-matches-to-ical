@@ -26,13 +26,14 @@ func TestLiveFlow(t *testing.T) {
 	if len(got) != 1 {
 		t.Fatalf("team + pool programme must be de-duplicated: got %d fixtures", len(got))
 	}
-	if got[0].Facility == nil || got[0].Facility.FacilityName != "Sportpark VOC" {
+	if got[0].Facility == nil || got[0].Facility.FacilityName != "Sportpark Neptunus-Schiebroek" {
 		t.Errorf("facility enrichment missing: %+v", got[0].Facility)
 	}
 	want := []string{
 		"team/TeamCompetitionData?v=2&PublicTeamId=T1779014083",
 		"team/TeamProgram?v=3&PublicTeamId=T1779014083",
 		"pool/PoolProgram?v=2&PoolId=839615",
+		"pool/PoolProgram?v=2&PoolId=845725",
 		"match/MatchFacility?v=3&PublicMatchId=M707488589",
 	}
 	if r := srv.Requests(); !slices.Equal(r, want) {
@@ -56,7 +57,7 @@ func TestLiveNoPoolsUsesTeamProgram(t *testing.T) {
 
 func TestLiveIncludePast(t *testing.T) {
 	srv := sportlinktest.NewServer(t)
-	srv.Handle("team/TeamLatestResults", sportlinktest.Body([]byte(`{"Results": [
+	srv.Handle("team/TeamLatestResults", sportlinktest.Body([]byte(`{"PublicTeamId": "T1779014083", "LatestResults": [
 	  {"PublicMatchId": "M1", "MatchDateTime": "2026-09-27T09:00:00+0200", "Status": "Gespeeld",
 	   "HomeTeam": {"PublicTeamId": "T1779014083", "TeamName": "Neptunus-Schiebroek O8-1"},
 	   "AwayTeam": {"PublicTeamId": "T2", "TeamName": "X O8-1"}},

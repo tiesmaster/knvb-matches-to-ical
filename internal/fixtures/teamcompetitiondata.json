@@ -1,0 +1,31 @@
+{
+  "Pool": [
+    {
+      "CompetitionKind": "DEFAULT_COMPETITION",
+      "ClassName": "4e klasse Zwaluwen Jeugd (1e fase)",
+      "PoolId": 839615,
+      "PoolName": "12",
+      "SortOrder": 456099999,
+      "NextMatchDate": null,
+      "PreviousMatchDate": "2026-10-03T08:30:00+0200"
+    },
+    {
+      "CompetitionKind": "DEFAULT_COMPETITION",
+      "ClassName": "4e klasse (2e fase)",
+      "PoolId": 845725,
+      "PoolName": "09",
+      "SortOrder": 457099999,
+      "NextMatchDate": "2026-10-24T08:30:00+0200",
+      "PreviousMatchDate": null
+    }
+  ],
+  "UnboundMatchResults": {
+    "MatchResult": []
+  },
+  "SportlinkClubMatchResults": {
+    "MatchResult": []
+  },
+  "TournamentMatchResults": {
+    "MatchResult": []
+  }
+}

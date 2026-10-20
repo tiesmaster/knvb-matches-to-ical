@@ -4,19 +4,30 @@ package fixtures
 
 import _ "embed"
 
-// PoolProgram is a real, decoded PoolProgram?v=2 response captured on 2026-10-03.
+// PoolProgram is a real PoolProgram?v=2 response captured on 2026-10-03.
 //
 //go:embed poolprogram.json
 var PoolProgram []byte
 
-// CompetitionData is a SYNTHETIC TeamCompetitionData?v=2 response; the real
-// shape has not been captured yet.
-//
-//go:embed competitiondata.synthetic.json
-var CompetitionData []byte
+// Real responses for O8-1 (T1779014083), captured on 2026-10-20.
+var (
+	// TeamCompetitionData lists the 1e and 2e fase pools.
+	//
+	//go:embed teamcompetitiondata.json
+	TeamCompetitionData []byte
 
-// MatchFacility is a SYNTHETIC MatchFacility?v=3 response; the real shape has
-// not been captured yet.
-//
-//go:embed matchfacility.synthetic.json
-var MatchFacility []byte
+	// MatchFacilityHome is a home match on Sportpark Neptunus-Schiebroek (M1771286118).
+	//
+	//go:embed matchfacility-home.json
+	MatchFacilityHome []byte
+
+	// MatchFacilityAway is an away match on Sportpark VOC (M1481718857).
+	//
+	//go:embed matchfacility-away.json
+	MatchFacilityAway []byte
+
+	// TeamLatestResults is empty: no 2e fase match had been played yet.
+	//
+	//go:embed teamlatestresults.json
+	TeamLatestResults []byte
+)

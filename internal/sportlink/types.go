@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"strconv"
+	"slices"
 	"time"
 )
 
@@ -61,29 +61,28 @@ type Pool struct {
 	CompetitionKind string `json:"CompetitionKind"`
 }
 
-// MatchFacility is the MatchFacility?v=3 response.
-//
-// NOTE: the field list comes from the decompiled app (REQUIREMENTS §4.1); no live
-// sample has been captured yet, so every field is decoded leniently as Text.
+// MatchFacility is the MatchFacility?v=3 response, a root-level object whose
+// fields are strings or null (captured 2026-10-20). AssemblyTime and
+// DepartureTime were null in every capture, so their format is unconfirmed.
 type MatchFacility struct {
-	FacilityID           Text `json:"FacilityId"`
-	FacilityName         Text `json:"FacilityName"`
-	Address              Text `json:"Address"`
-	ZipCode              Text `json:"ZipCode"`
-	City                 Text `json:"City"`
-	PhoneNumber          Text `json:"PhoneNumber"`
-	SubFacilityName      Text `json:"SubFacilityName"`
-	FieldType            Text `json:"FieldType"`
-	AssemblyTime         Text `json:"AssemblyTime"`
-	DepartureTime        Text `json:"DepartureTime"`
-	HomeDressingRoom     Text `json:"HomeDressingRoom"`
-	AwayDressingRoom     Text `json:"AwayDressingRoom"`
-	OfficialDressingRoom Text `json:"OfficialDressingRoom"`
-	ClubInformationURL   Text `json:"ClubInformationUrl"`
+	FacilityID           string `json:"FacilityId"` // e.g. "BBDX37J"
+	FacilityName         string `json:"FacilityName"`
+	Address              string `json:"Address"`
+	ZipCode              string `json:"ZipCode"`
+	City                 string `json:"City"`
+	PhoneNumber          string `json:"PhoneNumber"`
+	SubFacilityName      string `json:"SubFacilityName"` // field, e.g. "veld 1 A1"
+	FieldType            string `json:"FieldType"`
+	AssemblyTime         string `json:"AssemblyTime"`
+	DepartureTime        string `json:"DepartureTime"`
+	HomeDressingRoom     string `json:"HomeDressingRoom"`
+	AwayDressingRoom     string `json:"AwayDressingRoom"`
+	OfficialDressingRoom string `json:"OfficialDressingRoom"`
+	ClubInformationURL   string `json:"ClubInformationUrl"`
 }
 
-// Text decodes a JSON string, number, boolean or null into a string. It is used
-// for fields whose JSON type has not been confirmed against a live response.
+// Text decodes a JSON string, number or null into a string (ExternalMatchId
+// is a JSON number).
 type Text string
 
 func (t *Text) UnmarshalJSON(b []byte) error {
@@ -145,63 +144,60 @@ func validateItem(it ProgramItemMatch) error {
 	return nil
 }
 
-// DecodeMatchFacility decodes a MatchFacility body. It accepts the object either
-// at the root or wrapped as {"MatchFacility": {...}}.
+// DecodeMatchFacility decodes a MatchFacility body.
 func DecodeMatchFacility(body []byte) (*MatchFacility, error) {
-	var wrapped struct {
-		MatchFacility *json.RawMessage `json:"MatchFacility"`
-	}
-	if err := json.Unmarshal(body, &wrapped); err != nil {
-		return nil, fmt.Errorf("%w: %v", ErrUnexpectedShape, err)
-	}
-	if wrapped.MatchFacility != nil {
-		body = *wrapped.MatchFacility
+	if b := bytes.TrimSpace(body); len(b) == 0 || b[0] != '{' {
+		return nil, fmt.Errorf("%w: MatchFacility: expected a JSON object", ErrUnexpectedShape)
 	}
 	var f MatchFacility
 	if err := json.Unmarshal(body, &f); err != nil {
-		return nil, fmt.Errorf("%w: %v", ErrUnexpectedShape, err)
+		return nil, fmt.Errorf("%w: MatchFacility: %v", ErrUnexpectedShape, err)
 	}
 	return &f, nil
 }
 
-// DecodePoolIDs extracts every PoolId from a TeamCompetitionData body.
-//
-// NOTE: the exact response shape hasn't been captured yet (REQUIREMENTS §11.2 only
-// says "Pool[].PoolId"), so this walks the whole document for PoolId values.
+// DecodePoolIDs returns the PoolIds from a TeamCompetitionData body. Only the
+// top-level Pool array is read: the *MatchResults siblings may reference other
+// pools. A missing Pool array is an error; an empty one is not.
 func DecodePoolIDs(body []byte) ([]int64, error) {
-	var root any
-	dec := json.NewDecoder(bytes.NewReader(body))
-	dec.UseNumber()
-	if err := dec.Decode(&root); err != nil {
-		return nil, fmt.Errorf("%w: %v", ErrUnexpectedShape, err)
+	var r struct {
+		Pool *[]Pool `json:"Pool"`
 	}
-	if _, ok := root.(map[string]any); !ok {
-		return nil, fmt.Errorf("%w: expected a JSON object", ErrUnexpectedShape)
+	if err := json.Unmarshal(body, &r); err != nil {
+		return nil, fmt.Errorf("%w: TeamCompetitionData: %v", ErrUnexpectedShape, err)
 	}
-	seen := map[int64]bool{}
+	if r.Pool == nil {
+		return nil, fmt.Errorf("%w: TeamCompetitionData: top-level Pool array missing", ErrUnexpectedShape)
+	}
 	var ids []int64
-	walk(root, func(obj map[string]any) {
-		var id int64
-		switch v := obj["PoolId"].(type) {
-		case json.Number:
-			id, _ = v.Int64()
-		case string:
-			id, _ = strconv.ParseInt(v, 10, 64)
+	for i, p := range *r.Pool {
+		if p.PoolID <= 0 {
+			return nil, fmt.Errorf("%w: TeamCompetitionData: Pool[%d] has no PoolId", ErrUnexpectedShape, i)
 		}
-		if id > 0 && !seen[id] {
-			seen[id] = true
-			ids = append(ids, id)
+		if !slices.Contains(ids, p.PoolID) {
+			ids = append(ids, p.PoolID)
 		}
-	})
+	}
 	return ids, nil
 }
 
-// DecodeMatches extracts every Match-shaped object (having PublicMatchId and
-// MatchDateTime) from a body of unconfirmed shape, such as TeamLatestResults.
-func DecodeMatches(body []byte) ([]Match, error) {
+// DecodeLatestResults decodes a TeamLatestResults body,
+// {"PublicTeamId": "…", "LatestResults": [...]}. A missing LatestResults key is
+// an error. No non-empty capture exists yet, so the entries are scanned for
+// Match-shaped objects (having PublicMatchId and MatchDateTime) at any depth.
+func DecodeLatestResults(body []byte) ([]Match, error) {
+	var r struct {
+		LatestResults *json.RawMessage `json:"LatestResults"`
+	}
+	if err := json.Unmarshal(body, &r); err != nil {
+		return nil, fmt.Errorf("%w: TeamLatestResults: %v", ErrUnexpectedShape, err)
+	}
+	if r.LatestResults == nil {
+		return nil, fmt.Errorf("%w: TeamLatestResults: LatestResults missing", ErrUnexpectedShape)
+	}
 	var root any
-	if err := json.Unmarshal(body, &root); err != nil {
-		return nil, fmt.Errorf("%w: %v", ErrUnexpectedShape, err)
+	if err := json.Unmarshal(*r.LatestResults, &root); err != nil {
+		return nil, fmt.Errorf("%w: TeamLatestResults: %v", ErrUnexpectedShape, err)
 	}
 	var out []Match
 	var errs []error
@@ -221,7 +217,7 @@ func DecodeMatches(body []byte) ([]Match, error) {
 		out = append(out, m)
 	})
 	if err := errors.Join(errs...); err != nil {
-		return nil, fmt.Errorf("%w: %v", ErrUnexpectedShape, err)
+		return nil, fmt.Errorf("%w: TeamLatestResults: %v", ErrUnexpectedShape, err)
 	}
 	return out, nil
 }

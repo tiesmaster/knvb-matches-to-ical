@@ -44,14 +44,14 @@ func (d Dummy) Fixtures(context.Context) ([]sportlink.Fixture, error) {
 	out = append(out,
 		synthetic(DummyNormalID, "40001", time.Date(2026, 11, 14, 9, 0, 0, 0, ams), "SCHEDULED", true,
 			&sportlink.MatchFacility{
-				FacilityName: "Sportpark Neptunus-Schiebroek", SubFacilityName: "Veld 1",
-				Address: "Abraham van Stolkweg 31", ZipCode: "3041 JA", City: "Rotterdam",
+				FacilityName: "Sportpark Neptunus-Schiebroek", SubFacilityName: "veld 1 A1",
+				Address: "Hazelaarweg 40", ZipCode: "3053PM", City: "ROTTERDAM",
 				AssemblyTime: "08:30", HomeDressingRoom: "3", AwayDressingRoom: "4", FieldType: "Kunstgras",
 			}),
 		synthetic(DummyRescheduledID, "40002", rescheduled, "SCHEDULED", false,
 			&sportlink.MatchFacility{
-				FacilityName: "Sportpark VOC", SubFacilityName: sportlink.Text(field),
-				Address: "Kralingseweg 200", ZipCode: "3062 CG", City: "Rotterdam",
+				FacilityName: "Sportpark VOC", SubFacilityName: field,
+				Address: "Hazelaarweg 7", ZipCode: "3053PM", City: "ROTTERDAM",
 				AssemblyTime: "08:15", DepartureTime: "07:45",
 			}),
 		synthetic(DummyCancelledID, "40003", time.Date(2026, 11, 28, 10, 0, 0, 0, ams), "Afgelast", true, nil),

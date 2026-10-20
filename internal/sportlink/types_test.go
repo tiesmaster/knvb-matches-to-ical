@@ -2,6 +2,7 @@ package sportlink
 
 import (
 	"errors"
+	"slices"
 	"testing"
 	"time"
 
@@ -103,43 +104,66 @@ func TestDecodeProgramMergesArrays(t *testing.T) {
 }
 
 func TestDecodeMatchFacility(t *testing.T) {
-	for name, body := range map[string]string{
-		"root":    `{"FacilityName": "Sportpark VOC", "Address": "Kralingse Plaslaan 1", "ZipCode": "3062 AA", "City": "Rotterdam", "AssemblyTime": "08:00", "FacilityId": 1234, "HomeDressingRoom": null}`,
-		"wrapped": `{"MatchFacility": {"FacilityName": "Sportpark VOC", "Address": "Kralingse Plaslaan 1", "ZipCode": "3062 AA", "City": "Rotterdam", "AssemblyTime": "08:00", "FacilityId": 1234}}`,
-	} {
-		f, err := DecodeMatchFacility([]byte(body))
-		if err != nil {
-			t.Fatalf("%s: %v", name, err)
-		}
-		if f.FacilityName != "Sportpark VOC" || f.ZipCode != "3062 AA" || f.AssemblyTime != "08:00" || f.FacilityID != "1234" || f.HomeDressingRoom != "" {
-			t.Errorf("%s: %+v", name, f)
-		}
+	home, err := DecodeMatchFacility(fixtures.MatchFacilityHome)
+	if err != nil {
+		t.Fatal(err)
 	}
-	if _, err := DecodeMatchFacility([]byte(`{"FacilityName": {"nested": true}}`)); !errors.Is(err, ErrUnexpectedShape) {
-		t.Errorf("want ErrUnexpectedShape, got %v", err)
+	want := MatchFacility{
+		FacilityID: "BBDX37J", FacilityName: "Sportpark Neptunus-Schiebroek", Address: "Hazelaarweg 40",
+		ZipCode: "3053PM", City: "ROTTERDAM", PhoneNumber: "010-4224588", SubFacilityName: "veld 1 A1",
+		FieldType: "Kunstgras", ClubInformationURL: "https://www.neptunus-schiebroek.nl/191/accommodatie/",
+	}
+	if *home != want {
+		t.Errorf("home:\n got %+v\nwant %+v", *home, want)
+	}
+	away, err := DecodeMatchFacility(fixtures.MatchFacilityAway)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if away.FacilityName != "Sportpark VOC" || away.SubFacilityName != "" || away.FieldType != "" || away.AssemblyTime != "" {
+		t.Errorf("away: %+v", away)
+	}
+	for _, bad := range []string{`null`, `[]`, `<html>`, `{"FacilityName": {"nested": true}}`} {
+		if _, err := DecodeMatchFacility([]byte(bad)); !errors.Is(err, ErrUnexpectedShape) {
+			t.Errorf("%s: want ErrUnexpectedShape, got %v", bad, err)
+		}
 	}
 }
 
 func TestDecodePoolIDs(t *testing.T) {
-	ids, err := DecodePoolIDs([]byte(`{"Pool": [{"PoolId": 839615, "ClassName": "x"}, {"PoolId": "900001"}], "Other": {"Pool": {"PoolId": 839615}}}`))
+	ids, err := DecodePoolIDs(fixtures.TeamCompetitionData)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(ids) != 2 {
+	if !slices.Equal(ids, []int64{839615, 845725}) {
 		t.Errorf("ids = %v", ids)
 	}
-	ids, err = DecodePoolIDs([]byte(`{"Competition": []}`))
+	// Pools referenced elsewhere in the document are ignored.
+	ids, err = DecodePoolIDs([]byte(`{"Pool": [], "UnboundMatchResults": {"MatchResult": [{"Pool": {"PoolId": 1}}]}}`))
 	if err != nil || len(ids) != 0 {
 		t.Errorf("no pools: %v %v", ids, err)
 	}
-	if _, err := DecodePoolIDs([]byte(`[1,2]`)); !errors.Is(err, ErrUnexpectedShape) {
-		t.Errorf("want ErrUnexpectedShape, got %v", err)
+	for _, bad := range []string{`[1,2]`, `{"Competition": []}`, `{"Pool": null}`, `{"Pool": [{"ClassName": "x"}]}`} {
+		if _, err := DecodePoolIDs([]byte(bad)); !errors.Is(err, ErrUnexpectedShape) {
+			t.Errorf("%s: want ErrUnexpectedShape, got %v", bad, err)
+		}
 	}
 }
 
-func TestDecodeMatches(t *testing.T) {
-	ms, err := DecodeMatches(fixtures.PoolProgram)
-	if err != nil || len(ms) != 1 || ms[0].PublicMatchID != "M707488589" {
+func TestDecodeLatestResults(t *testing.T) {
+	ms, err := DecodeLatestResults(fixtures.TeamLatestResults)
+	if err != nil || len(ms) != 0 {
+		t.Fatalf("real (empty) capture: %v %v", ms, err)
+	}
+	// Entry shape is unconfirmed: matches are found at any depth inside LatestResults.
+	ms, err = DecodeLatestResults([]byte(`{"PublicTeamId": "T1", "LatestResults": [
+	  {"Match": {"PublicMatchId": "M1", "MatchDateTime": "2026-10-24T10:15:00+0200"}},
+	  {"PublicMatchId": "M2", "MatchDateTime": "2026-10-31T09:30:00+0200"}
+	]}`))
+	if err != nil || len(ms) != 2 {
 		t.Fatalf("got %+v, %v", ms, err)
+	}
+	if _, err := DecodeLatestResults([]byte(`{"PublicTeamId": "T1"}`)); !errors.Is(err, ErrUnexpectedShape) {
+		t.Errorf("want ErrUnexpectedShape, got %v", err)
 	}
 }

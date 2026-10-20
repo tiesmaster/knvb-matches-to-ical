@@ -42,11 +42,11 @@ type Server struct {
 // NewServer starts a server with default routes serving the fixtures.
 func NewServer(t testing.TB) *Server {
 	s := &Server{t: t, routes: map[string]http.HandlerFunc{}}
-	s.Handle("team/TeamCompetitionData", Body(fixtures.CompetitionData))
+	s.Handle("team/TeamCompetitionData", Body(fixtures.TeamCompetitionData))
 	s.Handle("team/TeamProgram", Body(fixtures.PoolProgram))
 	s.Handle("pool/PoolProgram", Body(fixtures.PoolProgram))
-	s.Handle("match/MatchFacility", Body(fixtures.MatchFacility))
-	s.Handle("team/TeamLatestResults", Body([]byte(`{"ProgramItemMatch": []}`)))
+	s.Handle("match/MatchFacility", Body(fixtures.MatchFacilityHome))
+	s.Handle("team/TeamLatestResults", Body(fixtures.TeamLatestResults))
 	s.Server = httptest.NewServer(http.HandlerFunc(s.serve))
 	t.Cleanup(s.Close)
 	return s

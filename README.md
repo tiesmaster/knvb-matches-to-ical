@@ -112,10 +112,12 @@ SOURCE=live DRY_RUN=1 go run ./cmd/knvb-ical
 The golden feed lives in `internal/calendar/testdata/feed.golden.ics`. After an
 intentional rendering change, run `go test ./internal/calendar -update`.
 
-> **Synthetic fixtures.** `internal/fixtures/poolprogram.json` is a real
-> response. `competitiondata.synthetic.json` and `matchfacility.synthetic.json`
-> are inferred from the decompiled app, and their decoders are deliberately
-> lenient. Replace them with real captures (`vnl-get.sh`) when available.
+> **Fixtures.** Everything in `internal/fixtures/` is a real response,
+> captured 2026-10-03 (`poolprogram.json`) and 2026-10-20 (the rest). Still
+> unconfirmed: the format of `AssemblyTime`/`DepartureTime` (null in every
+> capture; values that parse as a timestamp are shown as `HH:MM`, anything else
+> verbatim) and the entries of `TeamLatestResults` (empty so far, so matches
+> are looked up at any depth inside `LatestResults`).
 
 ## Cloudflare R2 setup
 

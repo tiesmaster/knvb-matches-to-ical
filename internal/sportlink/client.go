@@ -304,7 +304,7 @@ func (c *Client) TeamLatestResults(ctx context.Context, teamID string) ([]Match,
 	if err != nil {
 		return nil, err
 	}
-	return DecodeMatches(body)
+	return DecodeLatestResults(body)
 }
 
 // NoSleep is a Sleep that returns immediately (for tests).
