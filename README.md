@@ -198,8 +198,11 @@ and pushes it to `ghcr.io/tiesmaster/knvb-matches-to-ical`:
 | Trigger | Tags |
 |---|---|
 | Push to `main` | `latest`, `sha-<short>` |
-| Tag `v1.2.3` | `1.2.3`, `1.2`, `sha-<short>` |
+| Tag `1.2.3` or `v1.2.3` | `1.2.3`, `1.2`, `sha-<short>` |
 | Pull request | Build only, nothing pushed |
+
+To release: `git tag 0.2.0 && git push origin 0.2.0`. A plain `git push`
+doesn't push tags.
 
 The image is a static `CGO_ENABLED=0` binary on
 `gcr.io/distroless/static:nonroot` (uid 65532). After the first push, make the
