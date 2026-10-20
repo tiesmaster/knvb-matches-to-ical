@@ -23,7 +23,9 @@ Each run:
    `MatchFacility` per match for the address, field, assembly time and dressing
    rooms.
 3. **Map** each match to a VEVENT: `UID = <PublicMatchId>@voetbal.nl`,
-   DTSTART/DTEND in UTC, `SUMMARY = Home – Away`.
+   DTSTART/DTEND in UTC. SUMMARY names only the opponent: `THUIS: BVCB O8-3`
+   or `UIT: VOC O8-5`. Other teams' pool matches (with `ONLY_OWN_TEAM=false`)
+   keep `Home – Away`.
 4. **Diff** against `state.json` (stored next to the feed). A changed content
    hash bumps `SEQUENCE` and `LAST-MODIFIED`.
 5. **Publish**: if nothing changed, nothing is uploaded. Otherwise the `.ics` is

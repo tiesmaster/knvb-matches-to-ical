@@ -42,7 +42,10 @@ func (e Event) Hash() string {
 // MapOptions configures ToEvent.
 type MapOptions struct {
 	DefaultDuration time.Duration
-	Logger          *slog.Logger
+	// TeamID is our PublicTeamId; matches involving it get a
+	// "THUIS: <opponent>" / "UIT: <opponent>" summary.
+	TeamID string
+	Logger *slog.Logger
 }
 
 // ToEvent maps a fixture to an Event (REQUIREMENTS §4.2).
@@ -63,10 +66,23 @@ func ToEvent(f sportlink.Fixture, opts MapOptions) Event {
 		UID:         m.PublicMatchID + UIDSuffix,
 		Start:       start,
 		End:         end,
-		Summary:     fmt.Sprintf("%s – %s%s", teamName(m.HomeTeam), teamName(m.AwayTeam), kind.summarySuffix()),
+		Summary:     summary(m, opts.TeamID) + kind.summarySuffix(),
 		Location:    location(m, f.Facility),
 		Description: description(m, f.Facility, kind),
 		Status:      kind.ICalStatus(),
+	}
+}
+
+// summary names only the opponent when we play: "THUIS: BVCB O8-3" or
+// "UIT: VOC O8-5". Other pool matches keep "Home – Away".
+func summary(m *sportlink.Match, teamID string) string {
+	switch {
+	case teamID != "" && m.HomeTeam.PublicTeamID == teamID:
+		return "THUIS: " + teamName(m.AwayTeam)
+	case teamID != "" && m.AwayTeam.PublicTeamID == teamID:
+		return "UIT: " + teamName(m.HomeTeam)
+	default:
+		return fmt.Sprintf("%s – %s", teamName(m.HomeTeam), teamName(m.AwayTeam))
 	}
 }
 

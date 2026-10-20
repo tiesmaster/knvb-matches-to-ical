@@ -76,7 +76,7 @@ func (r *Runner) Run(ctx context.Context) (Result, error) {
 	}
 	events := make([]calendar.Event, 0, len(fixtures))
 	for _, f := range fixtures {
-		events = append(events, calendar.ToEvent(f, calendar.MapOptions{DefaultDuration: o.DefaultDuration, Logger: r.Logger}))
+		events = append(events, calendar.ToEvent(f, calendar.MapOptions{DefaultDuration: o.DefaultDuration, TeamID: o.TeamID, Logger: r.Logger}))
 	}
 
 	raw, found, err := r.Store.Get(ctx, o.StateKey)

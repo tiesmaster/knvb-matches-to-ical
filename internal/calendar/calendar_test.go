@@ -52,7 +52,7 @@ func fixtureFromJSON(t *testing.T) sportlink.Fixture {
 	return sportlink.Fixture{Item: items[0]}
 }
 
-var opts = MapOptions{DefaultDuration: time.Hour}
+var opts = MapOptions{DefaultDuration: time.Hour, TeamID: "T1779014083"}
 
 func TestToEventFromRealFixture(t *testing.T) {
 	e := ToEvent(fixtureFromJSON(t), opts)
@@ -125,6 +125,33 @@ func TestToEventFallbacks(t *testing.T) {
 	}
 }
 
+func TestSummaryHomeAway(t *testing.T) {
+	us := sportlink.Team{PublicTeamID: "T1779014083", TeamName: "Neptunus-Schiebroek O8-1"}
+	for name, tc := range map[string]struct {
+		home, away sportlink.Team
+		status     string
+		want       string
+	}{
+		"home":           {us, sportlink.Team{PublicTeamID: "T2", TeamName: "BVCB O8-3"}, "SCHEDULED", "THUIS: BVCB O8-3"},
+		"away":           {sportlink.Team{PublicTeamID: "T3", TeamName: "VOC O8-5"}, us, "SCHEDULED", "UIT: VOC O8-5"},
+		"away cancelled": {sportlink.Team{PublicTeamID: "T3", TeamName: "VOC O8-5"}, us, "Afgelast", "UIT: VOC O8-5 (afgelast)"},
+		"home postponed": {us, sportlink.Team{PublicTeamID: "T2", TeamName: "BVCB O8-3"}, "Uitgesteld", "THUIS: BVCB O8-3 (uitgesteld)"},
+		"not ours":       {sportlink.Team{PublicTeamID: "T3", TeamName: "VOC O8-5"}, sportlink.Team{PublicTeamID: "T2", TeamName: "BVCB O8-3"}, "", "VOC O8-5 – BVCB O8-3"},
+	} {
+		f := fixtureFromJSON(t)
+		f.Item.Match.HomeTeam, f.Item.Match.AwayTeam, f.Item.Match.Status = tc.home, tc.away, tc.status
+		if got := ToEvent(f, opts).Summary; got != tc.want {
+			t.Errorf("%s: got %q, want %q", name, got, tc.want)
+		}
+	}
+	// Without a TeamID both teams are named.
+	f := fixtureFromJSON(t)
+	f.Item.Match.HomeTeam = us
+	if got := ToEvent(f, MapOptions{DefaultDuration: time.Hour}).Summary; got != "Neptunus-Schiebroek O8-1 – BVCB O8-4" {
+		t.Errorf("no TeamID: %q", got)
+	}
+}
+
 func TestHashIgnoresTimeZoneRepresentation(t *testing.T) {
 	e := ToEvent(fixtureFromJSON(t), opts)
 	e2 := e
@@ -146,7 +173,7 @@ func TestRenderGolden(t *testing.T) {
 			UID:     "M900000002@voetbal.nl",
 			Start:   time.Date(2026, 11, 14, 9, 0, 0, 0, time.UTC),
 			End:     time.Date(2026, 11, 14, 10, 0, 0, 0, time.UTC),
-			Summary: "Neptunus-Schiebroek O8-1 – VOC O8-5 (afgelast)",
+			Summary: "THUIS: VOC O8-5 (afgelast)",
 			Location: "Sportpark Neptunus-Schiebroek (Veld 2), Abraham van Stolkweg 31, 3041 JA Rotterdam" +
 				" — a long line to exercise folding",
 			Description: "Status: Afgelast\nVerzamelen: 09:30\nKleedkamer thuis: 3; uit: 4\nWedstrijdnummer: 40002",
