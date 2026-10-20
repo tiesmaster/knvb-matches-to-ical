@@ -127,10 +127,13 @@ intentional rendering change, run `go test ./internal/calendar -update`.
 2. **Connect a custom domain.** Bucket → *Settings* → *Public access* →
    *Custom Domains* → *Connect Domain* (e.g. `cal.example.nl`; the zone must be
    in the same Cloudflare account). Leave the `r2.dev` subdomain **disabled**.
-3. **Create a scoped API token.** *R2* → *Manage API tokens* → *Create API
-   token*: permission **Object Read & Write**, *Apply to specific buckets only*
-   → your bucket. Copy the **Access Key ID** and **Secret Access Key** into
-   `R2_ACCESS_KEY_ID` / `R2_SECRET_ACCESS_KEY`.
+3. **Create a scoped API token.** *R2* → *Manage API tokens* → **Create
+   Account API token**, not a User API token. An account token belongs to the
+   account rather than to your login, so it survives changes to your user, and
+   it is the kind meant for services. Permission **Object Read & Write**,
+   *Apply to specific buckets only* → your bucket. Copy the **Access Key ID**
+   and **Secret Access Key** (not the token value) into `R2_ACCESS_KEY_ID` /
+   `R2_SECRET_ACCESS_KEY`.
 4. **Choose an unguessable key.** The URL is the only access control:
 
    ```sh
@@ -143,6 +146,37 @@ intentional rendering change, run `go test ./internal/calendar -update`.
 
 Objects are uploaded with `Content-Type: text/calendar; charset=utf-8` and
 `Cache-Control: max-age=300`.
+
+### Keeping costs at zero
+
+R2 needs a payment method, and Cloudflare has **no hard spending cap**. The
+exposure is small, though. Egress is free, and this job's own usage (a few
+operations a day, a ~10 KB object) is far inside the free tier. The only
+realistic cost is **Class B (read) operations** if the feed URL gets hammered:
+beyond the 10M free reads a month they are billed per million (see
+[R2 pricing](https://developers.cloudflare.com/r2/pricing/) for current rates).
+Do the following so a flood never reaches the bucket:
+
+1. **Cache the feed at the edge.** Cloudflare doesn't cache `.ics` by default,
+   so without this every request counts as a bucket read. In the zone of the
+   custom domain: *Caching* → *Cache Rules* → *Create rule*. Match
+   `Hostname equals cal.example.nl`, set *Eligible for cache*, and keep the edge
+   TTL at "use cache-control header if present". Requests are then served from
+   cache, and R2 sees at most a few reads per 5 minutes per data centre.
+   Updates can appear up to 5 minutes late, which is negligible next to
+   Google's refresh delay.
+2. **Rate-limit the hostname.** *Security* → *WAF* → *Rate limiting rules*. The
+   free plan includes one rule, e.g. `Hostname equals cal.example.nl`, more
+   than 30 requests per 10 seconds per IP → *Block* for 10 seconds. Calendar
+   clients poll a few times a day.
+3. **Keep the `r2.dev` subdomain disabled**, so the custom domain, with its
+   cache and WAF, is the only way in.
+4. **Set billing alerts.** *Notifications* → *Add* → usage-based billing for
+   R2 (e.g. Class B operations above 5M a month). These alerts only notify;
+   they don't stop usage.
+5. **Cap it at the bank.** For a real limit, pay with a virtual card that has a
+   low monthly limit (many banks and fintechs offer one). An unexpected bill is
+   then declined instead of charged.
 
 ## Subscribe in Google Calendar
 
