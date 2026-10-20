@@ -73,7 +73,7 @@ problem listed in one error.
 | `KNVB_CLIENT_ID` | (none) | App OAuth client id (REQUIREMENTS §5.2). **Required for `live`** |
 | `KNVB_CLIENT_SECRET` | (none) | App OAuth client secret. **Required for `live`** |
 | `TEAM_ID` | `T1779014083` | `PublicTeamId` of the team |
-| `ONLY_OWN_TEAM` | `false` | Keep only matches where home or away is `TEAM_ID`. Zwaluwen pool programmes include other teams' matches; for older teams, which share a pool with the whole competition, you probably want `true` |
+| `ONLY_OWN_TEAM` | `true` | Keep only matches where home or away is `TEAM_ID`. For Zwaluwen teams, both PoolProgram and TeamProgram return every match in the pool (28 matches, 7 of them O8-1's, in the 2e fase). Set `false` to publish the whole pool. Decide before the first publish: switching later turns the dropped matches into `(vervallen)` cancellations |
 | `INCLUDE_PAST` | `false` | Also fetch `TeamLatestResults` |
 | `R2_ACCOUNT_ID` | (none) | Cloudflare account id. **Required unless `DRY_RUN`** |
 | `R2_ACCESS_KEY_ID` | (none) | R2 API token access key. **Required unless `DRY_RUN`** |

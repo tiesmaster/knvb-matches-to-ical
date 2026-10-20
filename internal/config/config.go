@@ -20,6 +20,9 @@ const (
 	DefaultDuration   = time.Hour
 	DefaultOutDir     = "./out"
 	DefaultRetainDays = 180
+	// DefaultOnlyOwnTeam drops the other teams' matches that Zwaluwen pool
+	// programmes (and TeamProgram) also return.
+	DefaultOnlyOwnTeam = true
 	// DefaultFeedName is the local file name used in dry-run mode when
 	// R2_OBJECT_KEY is not set.
 	DefaultFeedName = "calendar.ics"
@@ -101,10 +104,10 @@ func Load(getenv func(string) string) (Config, error) {
 		}
 		return def
 	}
-	boolean := func(k string) bool {
+	boolOr := func(k string, def bool) bool {
 		v := get(k)
 		if v == "" {
-			return false
+			return def
 		}
 		b, err := strconv.ParseBool(v)
 		if err != nil {
@@ -112,6 +115,7 @@ func Load(getenv func(string) string) (Config, error) {
 		}
 		return b
 	}
+	boolean := func(k string) bool { return boolOr(k, false) }
 	required := func(k string) string {
 		v := getenv(k) // credentials are not trimmed
 		if v == "" {
@@ -123,7 +127,7 @@ func Load(getenv func(string) string) (Config, error) {
 	c := Config{
 		Source:          strings.ToLower(str("SOURCE", SourceDummy)),
 		TeamID:          str("TEAM_ID", DefaultTeamID),
-		OnlyOwnTeam:     boolean("ONLY_OWN_TEAM"),
+		OnlyOwnTeam:     boolOr("ONLY_OWN_TEAM", DefaultOnlyOwnTeam),
 		IncludePast:     boolean("INCLUDE_PAST"),
 		CalName:         str("CAL_NAME", DefaultCalName),
 		NotifyURL:       get("NOTIFY_URL"),

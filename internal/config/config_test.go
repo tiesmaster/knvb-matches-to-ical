@@ -18,11 +18,18 @@ func TestLoadDefaultsDummyDryRun(t *testing.T) {
 		t.Fatal(err)
 	}
 	if c.Source != SourceDummy || c.TeamID != DefaultTeamID || c.DefaultDuration != time.Hour ||
-		c.OutDir != DefaultOutDir || c.RetainDays != DefaultRetainDays || !c.DryRun {
+		c.OutDir != DefaultOutDir || c.RetainDays != DefaultRetainDays || !c.DryRun || !c.OnlyOwnTeam {
 		t.Errorf("unexpected defaults: %+v", c)
 	}
 	if c.FeedKey() != "calendar.ics" || c.StateKey() != "state.json" {
 		t.Errorf("keys: feed=%q state=%q", c.FeedKey(), c.StateKey())
+	}
+}
+
+func TestOnlyOwnTeamCanBeDisabled(t *testing.T) {
+	c, err := Load(env(map[string]string{"DRY_RUN": "1", "ONLY_OWN_TEAM": "false"}))
+	if err != nil || c.OnlyOwnTeam {
+		t.Errorf("ONLY_OWN_TEAM=false: %v %v", c.OnlyOwnTeam, err)
 	}
 }
 
