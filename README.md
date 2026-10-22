@@ -237,3 +237,8 @@ This uses a reverse-engineered, login-protected API, and Sportlink sells the
 same feed as an in-app purchase (REQUIREMENTS §6–7). Keep it personal, don't
 redistribute the data, and expect breakage when the app's client credentials
 or API versions change.
+
+## License
+
+[MIT](LICENSE). The licence covers this code only, not the data the API
+returns.
